@@ -105,24 +105,38 @@ The overall workflow can be summarized as follows:
 
 ## 🎧 Audio Preprocessing
 
-Audio recordings are preprocessed using **Librosa** to create a consistent input format.
+The audio pipeline standardizes recordings before feature extraction.
 
 Each audio file is:
 
-* Loaded as **mono audio**.
-* Resampled to **16,000 Hz**.
-* Standardized to a fixed **1-second duration**.
-* Converted into a **Mel-spectrogram representation** where required.
+1. Loaded as mono audio.
+2. Resampled to **16 kHz**.
+3. Standardized to a fixed **1-second** duration.
+4. Converted into a Mel-spectrogram representation where required.
 
-### Mel-Spectrogram Configuration
+The Mel-spectrogram configuration uses:
 
-| Parameter          | Value |
-| ------------------ | ----: |
-| Mel Bands          |    64 |
-| FFT Size (`n_fft`) |  1024 |
-| Hop Length         |   512 |
+- **64 Mel bands**
+- `n_fft = 1024`
+- `hop_length = 512`
 
-This preprocessing ensures that audio recordings with different formats and characteristics can be processed consistently by the deep learning pipeline.
+### Raw Audio Representation
+
+![Raw Audio Waveform](figures/03_waveform.png)
+
+*Example waveform of a one-second audio clip sampled at 16 kHz.*
+
+### Mel-Spectrogram Feature Extraction
+
+![Mel-Spectrogram](figures/04_mel_spectrogram.png)
+
+*Conversion of the preprocessed waveform into a 64-band Mel-spectrogram.*
+
+### End-to-End Preprocessing Pipeline
+
+![Audio Preprocessing Pipeline](figures/05_preprocessing_pipeline.png)
+
+*Overview of the implemented preprocessing and tensor preparation pipeline.*
 
 ---
 
@@ -158,32 +172,43 @@ These embeddings provide a compact representation of important characteristics c
 
 ## 🏷️ Dataset & Feature Preparation
 
-The notebook processes `.wav` and `.mp3` audio files organized into **class-specific directories**.
+The project uses a multi-class environmental sound dataset organized into class-specific audio folders.
 
-The implemented pipeline produced:
+The dataset visualization represents:
 
-| Dataset Property |            Value |
-| ---------------- | ---------------: |
-| Feature Samples  |            2,580 |
-| Sound Classes    |               61 |
-| Input Shape      | `(2580, 64, 32)` |
-| Target Shape     |     `(2580, 61)` |
+- **2,580 labeled audio clips**
+- **60 intended sound classes**
+- Audio stored primarily in `.wav` and `.mp3` formats
+- A mixture of indoor and outdoor sound categories
 
-### Feature Array
+Examples of sound classes include:
 
-```text
-X:
-(2580, 64, 32)
-```
+- Car horn
+- Door creaking
+- Baby crying
+- Water boiling
+- Alarm clock ringing
+- Animal sounds
+- Cooking sounds
+- Dog barking
+- Glass breaking
+- Thunderstorm
+- Computer typing
+- Footsteps
+- Coffee machine
+- Vacuum cleaner
 
-### One-Hot Encoded Labels
+### Dataset Composition
 
-```text
-y_categorical:
-(2580, 61)
-```
+![Dataset Class Distribution](figures/01_class_distribution.png)
 
-Class labels are first converted into numerical representations using **LabelEncoder** and subsequently transformed into **one-hot encoded targets** for multi-class classification.
+*Distribution of audio clips across the intended 60 sound classes.*
+
+![Dataset Composition and Split](figures/02_dataset_split.png)
+
+*Dataset composition showing the indoor/outdoor distribution and the train/validation/test split.*
+
+> **Implementation note:** During one feature-extraction stage, the notebook can include the temporary `all_audio_files` directory when constructing labels, which results in 61 encoded labels. The intended dataset structure represented in the project visualization contains 60 sound classes. This labeling artifact should be removed in a future cleanup of the notebook.
 
 ---
 
@@ -214,7 +239,11 @@ Dense — 61 Units
        │
        ▼
 Class Prediction
+
 ```
+![LSTM Model Architecture](figures/06_model_architecture.png)
+
+*LSTM-based sound classification architecture used in the experiment.*
 
 ### Model Parameters
 
@@ -245,6 +274,12 @@ The current experimental implementation achieved:
 | Metric            |  Result |
 | ----------------- | ------: |
 | **Test Accuracy** | **52%** |
+
+### Training Behaviour
+
+![LSTM Training Curves](figures/07_training_curves.png)
+
+*Training and validation accuracy/loss across the 20-epoch experiment, with final test accuracy of 52%.*
 
 During the recorded training run:
 
